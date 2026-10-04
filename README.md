@@ -76,3 +76,8 @@ Die ausgewählten Bilder werden lokal im Browser gespeichert. Für sehr große B
 - Gespeicherte Stunden enthalten die jeweilige Phasenübersicht mit Reihenfolge, Dauer und Bildern.
 - Zwischen z. B. Mathe- und Deutschstunden kann direkt gewechselt werden.
 - Schülernamen und individuelle Unterrichtsziele bleiben unabhängig von den gespeicherten Stunden erhalten.
+
+
+## Version 1.7
+- Schnellbilder von 10 auf 20 frei belegbare Bildplätze erweitert.
+- Bestehende gespeicherte Schnellbilder werden übernommen; zusätzliche Plätze bleiben zunächst leer.

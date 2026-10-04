@@ -232,7 +232,7 @@ details.config-fold .fold-body{padding:11px 12px;border-top:2px solid #e2e8f0}
   </aside>
 </section>
 
-<footer class="footer">Version 1.6 · Offline-PWA für iPad und Browser</footer>
+<footer class="footer">Version 1.7 · Offline-PWA für iPad und Browser</footer>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -267,7 +267,7 @@ details.config-fold .fold-body{padding:11px 12px;border-top:2px solid #e2e8f0}
     <details class="config-fold">
       <summary>🖼️ Schnellbilder</summary>
       <div class="fold-body">
-        <p class="help">Bis zu zehn eigene Bilder aus einem lokalen Ordner hinterlegen. Diese stehen anschließend bei jeder Phase zur Schnellwahl bereit.</p>
+        <p class="help">Bis zu zwanzig eigene Bilder aus einem lokalen Ordner hinterlegen. Diese stehen anschließend bei jeder Phase zur Schnellwahl bereit.</p>
         <div class="quick-icons-config" id="quickIconsConfig"></div>
       </div>
     </details>
@@ -334,7 +334,7 @@ details.config-fold .fold-body{padding:11px 12px;border-top:2px solid #e2e8f0}
     <h3>📚 Gespeicherte Schulstunden</h3>
     <p>Unterschiedliche Phasenabläufe können unter frei wählbaren Namen wie „Mathe“ oder „Deutsch“ gespeichert und später wieder geladen werden. Dabei werden Phasenname, Reihenfolge, Dauer und zugeordnete Bilder übernommen. Schülernamen und individuelle Unterrichtsziele bleiben unabhängig von der gewählten Stunde erhalten.</p>
     <h3>🖼️ Schnellbilder</h3>
-    <p>In der Timerkonfiguration können bis zu zehn eigene Bilder aus lokalen Ordnern als Schnellwahl hinterlegt werden. Diese Bilder lassen sich anschließend jeder Unterrichtsphase mit einem Fingertipp zuordnen. Zusätzlich kann weiterhin direkt pro Phase ein eigenes Bild gewählt werden.</p>
+    <p>In der Timerkonfiguration können bis zu zwanzig eigene Bilder aus lokalen Ordnern als Schnellwahl hinterlegt werden. Diese Bilder lassen sich anschließend jeder Unterrichtsphase mit einem Fingertipp zuordnen. Zusätzlich kann weiterhin direkt pro Phase ein eigenes Bild gewählt werden.</p>
     <h3>🚦 Individuelle Unterrichtsziele &amp; Mitarbeit</h3>
     <p>In der Timerkonfiguration können zu jedem Schüler individuelle Unterrichtsziele angelegt und optional mit eigenen Bildern visualisiert werden. Während jeder Unterrichtsphase wird jedes hinterlegte Ziel über eine Ampel mit Rot, Gelb oder Grün bewertet. Die abschließende Gold-, Silber- und Bronze-Platzierung wird aus den Zielbewertungen der einzelnen Schüler berechnet.</p>
     <h3>💾 Lokale Speicherung</h3>
@@ -349,7 +349,7 @@ details.config-fold .fold-body{padding:11px 12px;border-top:2px solid #e2e8f0}
     <p>Bei Fragen oder Anmerkungen erreichst du den App-Entwickler per E-Mail:<br><a href="mailto:matthias.scheibelhut-beck@hephata-schulnetz.de">matthias.scheibelhut-beck@hephata-schulnetz.de</a></p>
     <h3>♿ Barrierearme Bedienung</h3>
     <p>Große Schaltflächen, klare Symbole, starke Kontraste, sichtbare Fokusmarkierungen und eine Hauptoberfläche ohne Scrollen unterstützen eine möglichst einfache Bedienung.</p>
-    <p><strong>Version 1.6 · Offline-PWA</strong></p>
+    <p><strong>Version 1.7 · Offline-PWA</strong></p>
     <div class="dialog-actions"><button id="closeInfoBtn">✓ Schließen</button></div>
   </div>
 </dialog>
@@ -364,7 +364,7 @@ const defaultState = {
   sound:"gong",
   students:[],
   ratings:{},
-  quickIcons:Array(10).fill(null),
+  quickIcons:Array(20).fill(null),
   goals:[],
   lessonProfiles:{},
   phases:[
@@ -387,9 +387,9 @@ function loadState(){
       const p=JSON.parse(raw);
       if(Array.isArray(p.phases)&&p.phases.length){
         const merged={...defaultState,...p};
-        if(!Array.isArray(merged.quickIcons))merged.quickIcons=Array(10).fill(null);
-        while(merged.quickIcons.length<10)merged.quickIcons.push(null);
-        merged.quickIcons=merged.quickIcons.slice(0,10);
+        if(!Array.isArray(merged.quickIcons))merged.quickIcons=Array(20).fill(null);
+        while(merged.quickIcons.length<20)merged.quickIcons.push(null);
+        merged.quickIcons=merged.quickIcons.slice(0,20);
         merged.phases=merged.phases.map(ph=>({...ph,quickIcon:ph.quickIcon||null}));
         if(!Array.isArray(merged.goals))merged.goals=[];
         merged.goals=merged.goals.map(g=>({id:g.id||crypto.randomUUID(),student:g.student||"",text:g.text||"",image:g.image||null}));
@@ -761,9 +761,9 @@ function renderConfig(){
   renderLessonProfiles();
   $("#delayToggle").setAttribute("aria-pressed",String(state.delayEnabled));
   if(!Array.isArray(state.students))state.students=[];
-  if(!Array.isArray(state.quickIcons))state.quickIcons=Array(10).fill(null);
-  while(state.quickIcons.length<10)state.quickIcons.push(null);
-  state.quickIcons=state.quickIcons.slice(0,10);
+  if(!Array.isArray(state.quickIcons))state.quickIcons=Array(20).fill(null);
+  while(state.quickIcons.length<20)state.quickIcons.push(null);
+  state.quickIcons=state.quickIcons.slice(0,20);
   const quickBox=$("#quickIconsConfig");
   quickBox.innerHTML="";
   state.quickIcons.forEach((src,idx)=>{
