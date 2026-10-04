@@ -161,6 +161,13 @@ details.config-fold .fold-body{padding:11px 12px;border-top:2px solid #e2e8f0}
 .traffic button[data-rating="green"]{background:#22c55e}
 .traffic button.active{box-shadow:0 0 0 4px #fff,0 0 0 7px #0f172a}
 .ranking-box{border:2px solid #cbd5e1;border-radius:14px;background:#fff;padding:6px;font-size:.8rem}
+.main-fold{display:block}
+.main-fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 1px 5px}
+.main-fold>summary::-webkit-details-marker{display:none}
+.main-fold>summary::after{content:"▾";font-size:.95rem;font-weight:1000}
+.main-fold:not([open])>summary::after{content:"▸"}
+.main-fold:not([open]){flex:0 0 auto;max-height:none;overflow:hidden}
+
 .ranking-box h3{margin:0 0 8px}
 .ranking-list{display:flex;flex-direction:column;gap:7px}
 .rank-item{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;padding:4px 6px;border-radius:10px;font-weight:1000}
@@ -221,18 +228,18 @@ details.config-fold .fold-body{padding:11px 12px;border-top:2px solid #e2e8f0}
       <div class="summary-card"><strong id="phaseCount">0</strong><span>Phasen</span></div>
     </div>
     <div class="phase-list" id="phaseList"></div>
-    <div class="rating-panel" id="ratingPanel">
-      <strong>🚦 Mitarbeit</strong>
+    <details class="rating-panel main-fold" id="ratingPanel" open>
+      <summary><strong>🎯 Ziele</strong></summary>
       <div id="studentRatings"></div>
-    </div>
-    <div class="ranking-box" id="rankingBox" hidden>
-      <h3>🏆 Mitarbeit – Platzierungen</h3>
+    </details>
+    <details class="ranking-box main-fold" id="rankingBox" hidden open>
+      <summary><strong>🏆 Punkte &amp; Platzierungen</strong></summary>
       <div class="ranking-list" id="rankingList"></div>
-    </div>
+    </details>
   </aside>
 </section>
 
-<footer class="footer">Version 1.7 · Offline-PWA für iPad und Browser</footer>
+<footer class="footer">Version 1.8 · Offline-PWA für iPad und Browser</footer>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -336,7 +343,7 @@ details.config-fold .fold-body{padding:11px 12px;border-top:2px solid #e2e8f0}
     <h3>🖼️ Schnellbilder</h3>
     <p>In der Timerkonfiguration können bis zu zwanzig eigene Bilder aus lokalen Ordnern als Schnellwahl hinterlegt werden. Diese Bilder lassen sich anschließend jeder Unterrichtsphase mit einem Fingertipp zuordnen. Zusätzlich kann weiterhin direkt pro Phase ein eigenes Bild gewählt werden.</p>
     <h3>🚦 Individuelle Unterrichtsziele &amp; Mitarbeit</h3>
-    <p>In der Timerkonfiguration können zu jedem Schüler individuelle Unterrichtsziele angelegt und optional mit eigenen Bildern visualisiert werden. Während jeder Unterrichtsphase wird jedes hinterlegte Ziel über eine Ampel mit Rot, Gelb oder Grün bewertet. Die abschließende Gold-, Silber- und Bronze-Platzierung wird aus den Zielbewertungen der einzelnen Schüler berechnet.</p>
+    <p>In der Timerkonfiguration können zu jedem Schüler individuelle Unterrichtsziele angelegt und optional mit eigenen Bildern visualisiert werden. Während jeder Unterrichtsphase wird jedes hinterlegte Ziel über eine Ampel mit Rot, Gelb oder Grün bewertet. Die abschließende Gold-, Silber- und Bronze-Platzierung wird aus den Zielbewertungen der einzelnen Schüler berechnet. Bei gleicher Punktzahl erhalten Schüler dieselbe Platzierung.</p>
     <h3>💾 Lokale Speicherung</h3>
     <p>Timerkonfiguration, Startverzögerung, Tonsignal und ausgewählte Bilder werden ausschließlich lokal auf dem Gerät gespeichert. Es werden keine Nutzungsdaten übertragen.</p>
     <h3>📴 Offline-Nutzung</h3>
@@ -349,7 +356,7 @@ details.config-fold .fold-body{padding:11px 12px;border-top:2px solid #e2e8f0}
     <p>Bei Fragen oder Anmerkungen erreichst du den App-Entwickler per E-Mail:<br><a href="mailto:matthias.scheibelhut-beck@hephata-schulnetz.de">matthias.scheibelhut-beck@hephata-schulnetz.de</a></p>
     <h3>♿ Barrierearme Bedienung</h3>
     <p>Große Schaltflächen, klare Symbole, starke Kontraste, sichtbare Fokusmarkierungen und eine Hauptoberfläche ohne Scrollen unterstützen eine möglichst einfache Bedienung.</p>
-    <p><strong>Version 1.7 · Offline-PWA</strong></p>
+    <p><strong>Version 1.8 · Offline-PWA</strong></p>
     <div class="dialog-actions"><button id="closeInfoBtn">✓ Schließen</button></div>
   </div>
 </dialog>
@@ -679,15 +686,32 @@ function renderRanking(){
   const anyRated=totals.some(x=>x.rated>0);
   box.hidden=!anyRated;
   if(!anyRated)return;
+
   const medals=["🥇","🥈","🥉"];
   const classes=["gold","silver","bronze"];
-  totals.forEach((item,i)=>{
+  let rank=0;
+  let lastScore=null;
+
+  totals.forEach(item=>{
+    if(lastScore===null || item.score!==lastScore){
+      rank++;
+      lastScore=item.score;
+    }
+
     const row=document.createElement("div");
-    row.className=`rank-item ${classes[i]||"other"}`;
-    const medal=document.createElement("span");medal.textContent=medals[i]||`${i+1}.`;
-    const name=document.createElement("span");name.textContent=item.name;
-    const score=document.createElement("span");score.textContent=`${item.score} P`;
-    row.append(medal,name,score);ranking.append(row);
+    row.className=`rank-item ${classes[rank-1]||"other"}`;
+
+    const medal=document.createElement("span");
+    medal.textContent=medals[rank-1]||`${rank}.`;
+
+    const name=document.createElement("span");
+    name.textContent=item.name;
+
+    const score=document.createElement("span");
+    score.textContent=`${item.score} P`;
+
+    row.append(medal,name,score);
+    ranking.append(row);
   });
 }
 

@@ -1,5 +1,5 @@
 "use strict";
-const CACHE_NAME="unterrichtstimer-v1.7";
+const CACHE_NAME="unterrichtstimer-v1.8";
 const APP_FILES=[
   "./",
   "./index.html",

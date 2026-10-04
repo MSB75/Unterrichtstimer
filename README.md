@@ -81,3 +81,10 @@ Die ausgewählten Bilder werden lokal im Browser gespeichert. Für sehr große B
 ## Version 1.7
 - Schnellbilder von 10 auf 20 frei belegbare Bildplätze erweitert.
 - Bestehende gespeicherte Schnellbilder werden übernommen; zusätzliche Plätze bleiben zunächst leer.
+
+
+## Version 1.8
+- Auf dem Hauptbildschirm heißt der Bewertungsbereich jetzt „Ziele“.
+- Zielbewertungen und Punkte/Platzierungen sind jeweils einklappbar.
+- Bei gleicher Punktzahl erhalten Schüler dieselbe Platzierung.
+- Die folgenden unterschiedlichen Punktstände erhalten die jeweils nächste Platzierung.
