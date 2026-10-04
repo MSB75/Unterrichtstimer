@@ -1,0 +1,1009 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Unterrichtstimer">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<title>Unterrichtstimer</title>
+<style>
+:root{
+  --ink:#0f172a;--muted:#475569;--paper:#ffffff;--soft:#f8fafc;--line:#0f172a;
+  --blue:#1d4ed8;--blue2:#dbeafe;--focus:#facc15;--good:#166534;--bad:#991b1b;
+  --shadow:0 18px 42px rgba(15,23,42,.18);--radius:22px;
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;margin:0;font-family:ui-rounded,"Chalkboard SE","Comic Sans MS",system-ui,-apple-system,sans-serif;color:var(--ink);background:linear-gradient(145deg,#dbeafe,#f8fafc 58%,#fef3c7);-webkit-tap-highlight-color:transparent}
+button,input{font:inherit}
+button{border:0;cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:5px solid var(--focus);outline-offset:3px}
+.app{height:100dvh;max-width:1280px;margin:auto;padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:8px}
+.topbar{flex:0 0 auto;min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:1000;font-size:clamp(1.2rem,2.8vw,2rem)}
+.logo{width:60px;height:60px;border-radius:18px;background:#fff;border:3px solid #fff;box-shadow:0 6px 0 #0f172a;display:block;object-fit:contain}
+.top-actions{display:flex;gap:8px}
+.icon-btn{width:54px;min-height:54px;border-radius:16px;background:#fff;border:3px solid var(--line);font-size:1.25rem;font-weight:1000}
+.main{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(310px,.34fr);gap:10px}
+.clock-panel,.side-panel{min-height:0;background:rgba(255,255,255,.97);border:4px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.clock-panel{position:relative;display:grid;place-items:center;padding:12px;overflow:hidden}
+.clock-wrap{position:relative;width:min(72vw,72dvh,720px);aspect-ratio:1}
+.clock-svg{width:100%;height:100%;display:block}
+.current-phase{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:min(36%,320px);background:#fff;border:3px solid var(--line);border-radius:16px;padding:5px 9px;text-align:center;font-weight:1000;box-shadow:0 6px 14px rgba(15,23,42,.12);pointer-events:none}
+.current-phase .phase-name{font-size:clamp(.9rem,2.1dvh,1.15rem)}
+.current-phase .phase-time{color:var(--muted);font-size:clamp(.72rem,1.6dvh,.9rem)}
+.side-panel{padding:8px;display:flex;flex-direction:column;gap:7px;overflow:hidden}
+.side-title{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.side-title h2{margin:0;font-size:clamp(1.1rem,2.6dvh,1.45rem)}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.summary-card{border:2px solid #cbd5e1;border-radius:14px;background:#f8fafc;padding:6px;text-align:center}
+.summary-card strong{display:block;font-size:1.1rem}
+.summary-card span{font-size:.72rem;color:var(--muted);font-weight:800}
+.phase-list{flex:1 1 auto;min-height:0;overflow:hidden;display:grid;grid-template-columns:1fr;grid-auto-rows:minmax(0,1fr);gap:5px;padding-right:0}
+.phase-card{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:7px;align-items:center;border:2px solid #d5deea;border-left:9px solid var(--phase-color,#cbd5e1);border-radius:14px;background:linear-gradient(180deg,#fff,#f8fafc);padding:5px 7px;box-shadow:0 3px 8px rgba(15,23,42,.05);min-height:0}
+.phase-card.active{border-color:var(--phase-color,#1d4ed8);border-left-width:10px;box-shadow:0 0 0 3px color-mix(in srgb,var(--phase-color,#1d4ed8) 25%, transparent),0 7px 16px rgba(15,23,42,.10)}
+.phase-card .phase-meta strong{color:var(--ink)}
+.phase-card.active .phase-meta strong{color:var(--phase-color,#0f172a)}
+.phase-card .phase-index{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--phase-color,#e2e8f0);color:#0f172a;border:2px solid rgba(15,23,42,.18)}
+.phase-thumb{width:42px;height:42px;border-radius:10px;border:2px solid #cbd5e1;background:#f8fafc;display:grid;place-items:center;overflow:hidden;font-size:1.3rem}
+.phase-thumb img{width:100%;height:100%;object-fit:cover}
+.phase-meta{min-width:0}
+.phase-meta strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phase-meta span{display:block;color:var(--muted);font-weight:800;font-size:.83rem}
+.phase-index{font-weight:1000;color:var(--muted)}
+.controlbar{position:absolute;left:14px;bottom:14px;z-index:5;display:flex;gap:8px}
+.control-btn{width:58px;height:58px;border-radius:18px;border:3px solid var(--line);background:#fff;font-size:1.45rem;font-weight:1000;box-shadow:0 6px 0 rgba(15,23,42,.18)}
+.control-btn.primary{background:var(--blue);color:#fff}
+.control-btn.danger{background:#fee2e2;color:#7f1d1d}
+.config-btn{position:absolute;right:14px;bottom:14px;z-index:5;width:64px;height:64px;border-radius:20px;border:4px solid var(--line);background:#fff;font-size:1.6rem;box-shadow:0 7px 0 rgba(15,23,42,.18)}
+.footer{flex:0 0 auto;text-align:center;font-size:.72rem;font-weight:900;color:#334155}
+dialog{width:min(820px,calc(100% - 24px));max-height:min(90dvh,920px);overflow:auto;border:0;border-radius:22px;padding:0;box-shadow:0 24px 80px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(15,23,42,.6)}
+.dialog-content{padding:24px;line-height:1.5}
+.dialog-content h2{margin-top:0}
+.dialog-content h3{margin:1.1em 0 .3em}
+.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.dialog-actions button{min-height:50px;padding:10px 18px;border-radius:15px;background:var(--blue);color:#fff;font-weight:1000}
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.config-section{border:3px solid #cbd5e1;border-radius:18px;background:#f8fafc;padding:12px}
+.config-section h3{margin:0 0 10px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.toggle-btn{min-height:46px;padding:8px 14px;border-radius:14px;border:3px solid var(--line);background:#fff;font-weight:1000}
+.toggle-btn[aria-pressed="true"]{background:#dcfce7;color:#14532d;border-color:#166534}
+.stepper{display:flex;align-items:center;justify-content:center;gap:12px}
+.stepper button{width:48px;height:48px;border-radius:14px;border:3px solid var(--line);background:#fff;font-size:1.4rem;font-weight:1000}
+.stepper output{min-width:70px;text-align:center;font-size:1.4rem;font-weight:1000}
+.sound-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sound-btn{min-height:48px;border-radius:14px;border:3px solid var(--line);background:#fff;font-weight:1000}
+.sound-btn.active{background:#dbeafe;border-color:var(--blue)}
+.phase-editor-list{display:flex;flex-direction:column;gap:10px;max-height:42dvh;overflow:auto}
+.phase-editor{border:3px solid #cbd5e1;border-radius:16px;background:#fff;padding:10px;display:grid;grid-template-columns:1fr auto;gap:8px}
+.phase-fields{display:grid;grid-template-columns:1fr auto;gap:8px}
+.phase-fields input[type="text"]{min-width:0;min-height:46px;border:3px solid #cbd5e1;border-radius:13px;padding:8px 10px;font-weight:900}
+.duration-control{display:flex;align-items:center;gap:6px}
+.duration-control button{width:40px;height:40px;border-radius:12px;border:3px solid var(--line);background:#fff;font-weight:1000}
+.duration-control span{min-width:42px;text-align:center;font-weight:1000}
+.image-row{display:flex;align-items:center;gap:8px;grid-column:1/-1}
+.image-row input{max-width:100%;font-size:.84rem}
+.remove-phase{width:44px;height:44px;border-radius:13px;background:#fee2e2;color:#7f1d1d;border:3px solid #991b1b;font-weight:1000}
+.add-phase{width:100%;min-height:48px;border-radius:14px;border:3px solid var(--line);background:#dcfce7;color:#14532d;font-weight:1000;margin-top:10px}
+.toast{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translate(-50%,140%);z-index:40;padding:12px 18px;border-radius:15px;background:#0f172a;color:#fff;font-weight:900;transition:transform .2s}
+.toast.show{transform:translate(-50%,0)}
+.compact .side-panel{display:none}
+.compact .main{grid-template-columns:1fr}
+.compact .clock-wrap{width:min(88vw,80dvh,780px)}
+
+
+.quick-icons-config{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.quick-icon-slot{position:relative;aspect-ratio:1;border:2px solid #cbd5e1;border-radius:12px;background:#fff;overflow:hidden;display:grid;place-items:center}
+.quick-icon-slot img{width:100%;height:100%;object-fit:cover}
+.quick-icon-slot .slot-placeholder{font-size:1.45rem}
+.quick-icon-slot input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.icon-palette{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;grid-column:1/-1}
+.icon-choice{min-height:42px;border:2px solid #cbd5e1;border-radius:10px;background:#fff;font-size:1.1rem;overflow:hidden;padding:2px}
+.icon-choice img{width:100%;height:36px;object-fit:cover;border-radius:7px}
+.icon-choice.active{border-color:var(--blue);background:#dbeafe}
+
+
+.goal-config-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.goal-config-card{border:2px solid #cbd5e1;border-radius:14px;background:#fff;padding:8px;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:8px;align-items:center}
+.goal-image{width:52px;height:52px;border-radius:11px;border:2px solid #cbd5e1;background:#f8fafc;display:grid;place-items:center;overflow:hidden}
+.goal-image img{width:100%;height:100%;object-fit:cover}
+.goal-fields{display:grid;grid-template-columns:1fr;gap:6px}
+.goal-fields input[type="text"],.goal-fields select{min-height:42px;border:2px solid #cbd5e1;border-radius:11px;padding:6px 8px;font-weight:800;background:#fff}
+.goal-file{font-size:.78rem}
+.goal-remove{width:38px;height:38px;border-radius:11px;border:2px solid #991b1b;background:#fee2e2;color:#7f1d1d;font-weight:1000}
+.add-goal{width:100%;min-height:44px;border-radius:12px;border:2px solid var(--line);background:#e0f2fe;font-weight:1000;margin-top:8px}
+.student-goal-row{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:6px;align-items:center;padding:4px 6px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc}
+.student-goal-row .goal-thumb{width:34px;height:34px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;display:grid;place-items:center;overflow:hidden}
+.student-goal-row .goal-thumb img{width:100%;height:100%;object-fit:cover}
+.student-goal-text{min-width:0}
+.student-goal-text strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.78rem}
+.student-goal-text span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-size:.68rem}
+
+
+details.config-fold{border:3px solid #cbd5e1;border-radius:18px;background:#f8fafc;overflow:hidden}
+details.config-fold>summary{list-style:none;cursor:pointer;padding:11px 13px;font-weight:1000;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff}
+details.config-fold>summary::-webkit-details-marker{display:none}
+details.config-fold>summary::after{content:"▾";font-size:1.1rem;transition:transform .15s ease}
+details.config-fold:not([open])>summary::after{transform:rotate(-90deg)}
+details.config-fold .fold-body{padding:11px 12px;border-top:2px solid #e2e8f0}
+.lesson-profile-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.lesson-profile-grid input,.lesson-profile-grid select{min-height:46px;border:3px solid #cbd5e1;border-radius:13px;padding:8px 10px;font-weight:900;background:#fff;min-width:0}
+.lesson-profile-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.lesson-profile-actions button{min-height:44px;padding:7px 12px;border:3px solid var(--line);border-radius:12px;background:#fff;font-weight:1000}
+.lesson-profile-actions .save-profile{background:#dcfce7;color:#14532d}
+.lesson-profile-actions .delete-profile{background:#fee2e2;color:#7f1d1d}
+.lesson-profile-note{margin:6px 0 0;color:var(--muted);font-size:.8rem;font-weight:800}
+
+.student-config{margin-top:12px}
+.student-list-edit{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.student-chip-edit{display:flex;align-items:center;gap:6px;padding:6px 8px;border:2px solid #cbd5e1;border-radius:999px;background:#fff;font-weight:900}
+.student-chip-edit button{width:28px;height:28px;border-radius:50%;background:#fee2e2;color:#7f1d1d;font-weight:1000}
+.student-input-row{display:grid;grid-template-columns:1fr auto;gap:8px}
+.student-input-row input{min-height:46px;border:3px solid #cbd5e1;border-radius:13px;padding:8px 10px;font-weight:900}
+.student-input-row button{min-height:46px;padding:8px 14px;border-radius:13px;border:3px solid var(--line);background:#dcfce7;font-weight:1000}
+.rating-panel{border:2px solid #cbd5e1;border-radius:14px;background:#fff;padding:6px;display:flex;flex-direction:column;gap:5px;max-height:21dvh;overflow:auto;font-size:.82rem}
+.rating-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;padding:4px 6px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc}
+.rating-name{font-weight:1000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.traffic{display:flex;gap:6px}
+.traffic button{width:24px;height:24px;border-radius:50%;border:2px solid #475569;background:#e5e7eb}
+.traffic button[data-rating="red"]{background:#ef4444}
+.traffic button[data-rating="yellow"]{background:#facc15}
+.traffic button[data-rating="green"]{background:#22c55e}
+.traffic button.active{box-shadow:0 0 0 4px #fff,0 0 0 7px #0f172a}
+.ranking-box{border:2px solid #cbd5e1;border-radius:14px;background:#fff;padding:6px;font-size:.8rem}
+.ranking-box h3{margin:0 0 8px}
+.ranking-list{display:flex;flex-direction:column;gap:7px}
+.rank-item{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;padding:4px 6px;border-radius:10px;font-weight:1000}
+.rank-item.gold{background:#fef3c7;border:3px solid #d4a017}
+.rank-item.silver{background:#f1f5f9;border:3px solid #94a3b8}
+.rank-item.bronze{background:#ffedd5;border:3px solid #c26a2e}
+.rank-item.other{background:#f8fafc;border:2px solid #e2e8f0}
+
+@media(max-width:900px){.main{grid-template-columns:1fr}.side-panel{display:none}.clock-wrap{width:min(86vw,72dvh,680px)}}
+@media(max-height:700px) and (orientation:landscape){body{font-size:14px}.app{gap:5px}.topbar{min-height:48px}.logo{width:48px;height:48px;border-radius:13px}.icon-btn{width:46px;min-height:46px}.clock-wrap{width:min(64vw,72dvh,620px)}.control-btn{width:50px;height:50px}.config-btn{width:56px;height:56px}.current-phase{bottom:8px;padding:4px 7px;width:min(32%,250px)}.rating-panel{max-height:17dvh}.ranking-box{max-height:15dvh;overflow:hidden}.footer{font-size:.62rem}}
+@media(max-width:700px){.config-grid{grid-template-columns:1fr}.phase-fields{grid-template-columns:1fr}.sound-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="app" id="app">
+<header class="topbar">
+  <div class="brand"><img class="logo" src="icons/app-icon.png" alt=""><span>Unterrichtstimer</span></div>
+  <div class="top-actions">
+    <button class="icon-btn" id="infoBtn" aria-label="Informationen öffnen">ⓘ</button>
+    <button class="icon-btn" id="viewBtn" aria-label="Vollbild oder kleinere Ansicht">⛶</button>
+  </div>
+</header>
+
+<section class="main">
+  <div class="clock-panel" id="clockPanel">
+    <div class="clock-wrap">
+      <svg class="clock-svg" id="clockSvg" viewBox="0 0 600 600" role="img" aria-label="Analoge Uhr mit Unterrichtsphasen">
+        <circle cx="300" cy="300" r="272" fill="#fff" stroke="#0f172a" stroke-width="8"/>
+        <g id="phaseArcs"></g>
+        <g id="phaseIcons"></g>
+        <g id="ticks"></g>
+        <g id="numbers"></g>
+        <g id="hands">
+          <line id="hourHand" x1="300" y1="300" x2="300" y2="182" stroke="#0f172a" stroke-width="14" stroke-linecap="round"/>
+          <line id="minuteHand" x1="300" y1="300" x2="300" y2="120" stroke="#1d4ed8" stroke-width="10" stroke-linecap="round"/>
+          <line id="secondHand" x1="300" y1="315" x2="300" y2="96" stroke="#b91c1c" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="300" cy="300" r="14" fill="#0f172a"/>
+        </g>
+      </svg>
+    </div>
+    <div class="current-phase" id="currentPhase">
+      <div class="phase-name">Bereit</div>
+      <div class="phase-time">Timer konfigurieren und starten</div>
+    </div>
+    <div class="controlbar">
+      <button class="control-btn primary" id="startBtn" aria-label="Start">▶</button>
+      <button class="control-btn" id="pauseBtn" aria-label="Pause">⏸</button>
+      <button class="control-btn danger" id="stopBtn" aria-label="Stop">⏹</button>
+      <button class="control-btn" id="hideBtn" aria-label="Timer ausblenden">✕</button>
+    </div>
+    <button class="config-btn" id="configBtn" aria-label="Timer konfigurieren">⚙️</button>
+  </div>
+
+  <aside class="side-panel" id="sidePanel">
+    <div class="side-title"><h2>Unterrichtsphasen</h2><span id="runState">Bereit</span></div>
+    <div class="summary">
+      <div class="summary-card"><strong id="totalMinutes">0</strong><span>Minuten gesamt</span></div>
+      <div class="summary-card"><strong id="phaseCount">0</strong><span>Phasen</span></div>
+    </div>
+    <div class="phase-list" id="phaseList"></div>
+    <div class="rating-panel" id="ratingPanel">
+      <strong>🚦 Mitarbeit</strong>
+      <div id="studentRatings"></div>
+    </div>
+    <div class="ranking-box" id="rankingBox" hidden>
+      <h3>🏆 Mitarbeit – Platzierungen</h3>
+      <div class="ranking-list" id="rankingList"></div>
+    </div>
+  </aside>
+</section>
+
+<footer class="footer">Version 1.6 · Offline-PWA für iPad und Browser</footer>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<dialog id="configDialog" aria-labelledby="configTitle">
+  <div class="dialog-content">
+    <h2 id="configTitle">⚙️ Timer konfigurieren</h2>
+    <div class="config-grid">
+      <div class="config-section">
+        <h3>Startverzögerung</h3>
+        <div class="toggle-row">
+          <span>Verzögerung verwenden</span>
+          <button class="toggle-btn" id="delayToggle" aria-pressed="false">Aus</button>
+        </div>
+        <div class="stepper">
+          <button id="delayMinus">−</button>
+          <output id="delayValue">0 min</output>
+          <button id="delayPlus">+</button>
+        </div>
+      </div>
+      <div class="config-section">
+        <h3>Tonsignal</h3>
+        <div class="sound-grid" id="soundGrid">
+          <button class="sound-btn active" data-sound="gong">🔔 Schulgong</button>
+          <button class="sound-btn" data-sound="digital">🔊 Digital</button>
+          <button class="sound-btn" data-sound="soft">🎵 Sanft</button>
+          <button class="sound-btn" data-sound="mute">🔇 Stumm</button>
+        </div>
+      </div>
+    </div>
+
+    <details class="config-fold">
+      <summary>🖼️ Schnellbilder</summary>
+      <div class="fold-body">
+        <p class="help">Bis zu zehn eigene Bilder aus einem lokalen Ordner hinterlegen. Diese stehen anschließend bei jeder Phase zur Schnellwahl bereit.</p>
+        <div class="quick-icons-config" id="quickIconsConfig"></div>
+      </div>
+    </details>
+
+    <details class="config-fold student-config">
+      <summary>👥 Schülernamen</summary>
+      <div class="fold-body">
+        <div class="student-input-row">
+          <input id="studentNameInput" type="text" maxlength="60" placeholder="Name eingeben">
+          <button id="addStudentBtn" type="button">＋ Hinzufügen</button>
+        </div>
+        <div class="student-list-edit" id="studentListEdit"></div>
+      </div>
+    </details>
+
+    <details class="config-fold">
+      <summary>🎯 Individuelle Unterrichtsziele</summary>
+      <div class="fold-body">
+        <p class="help">Ziele einem Schüler zuordnen und optional mit einem eigenen Bild visualisieren.</p>
+        <div class="goal-config-list" id="goalConfigList"></div>
+        <button class="add-goal" id="addGoalBtn" type="button">＋ Unterrichtsziel hinzufügen</button>
+      </div>
+    </details>
+
+    <div class="config-section">
+      <h3>📚 Gespeicherte Schulstunden</h3>
+      <div class="lesson-profile-grid">
+        <input id="lessonProfileName" type="text" maxlength="50" placeholder="z. B. Mathe, Deutsch">
+        <select id="lessonProfileSelect" aria-label="Gespeicherte Schulstunde auswählen">
+          <option value="">Gespeicherte Stunde wählen</option>
+        </select>
+      </div>
+      <div class="lesson-profile-actions">
+        <button class="save-profile" id="saveLessonProfileBtn" type="button">💾 Aktuelle Phasen speichern</button>
+        <button id="loadLessonProfileBtn" type="button">📂 Laden</button>
+        <button class="delete-profile" id="deleteLessonProfileBtn" type="button">🗑 Löschen</button>
+      </div>
+      <p class="lesson-profile-note">Gespeichert werden Name, Reihenfolge, Dauer und Bild/Schnellbild der Phasen. Schüler und Unterrichtsziele bleiben davon unabhängig.</p>
+    </div>
+
+    <h3>Unterrichtsphasen</h3>
+    <div class="phase-editor-list" id="phaseEditorList"></div>
+    <button class="add-phase" id="addPhaseBtn">＋ Timer hinzufügen</button>
+
+    <div class="dialog-actions">
+      <button id="saveConfigBtn">✓ Speichern und schließen</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="infoDialog" aria-labelledby="infoTitle">
+  <div class="dialog-content">
+    <h2 id="infoTitle">ⓘ Informationen zur App</h2>
+    <h3>🎯 Zweck der App</h3>
+    <p>Der Unterrichtstimer bildet mehrere Phasen einer Unterrichtsstunde auf einer analogen Uhr ab. Die Uhr zeigt gleichzeitig die aktuelle Uhrzeit mit Stunden-, Minuten- und Sekundenzeiger.</p>
+    <h3>⏱️ Timerphasen</h3>
+    <p>Jede Phase besitzt einen Namen und eine Dauer in Minuten. Die Phasen werden als Segmente am Rand der Uhr dargestellt. Während des Ablaufs wird die aktuelle Phase hervorgehoben und die verbleibende Zeit angezeigt.</p>
+    <h3>🖼️ Eigene Bilder</h3>
+    <p>Zu jeder Phase kann ein Bild aus einem lokalen Ordner des Geräts ausgewählt werden. Das Bild wird ausschließlich lokal in der App gespeichert und nicht an einen Server übertragen.</p>
+    <h3>🔔 Tonsignale</h3>
+    <p>Zur Auswahl stehen Schulgong, Digital, Sanft und Stumm. Die Signale werden direkt im Browser erzeugt; es werden keine Audiodateien oder externen Dienste benötigt.</p>
+    <h3>⏳ Startverzögerung</h3>
+    <p>Optional kann vor dem Beginn der ersten Phase eine Startverzögerung in Minuten eingestellt werden.</p>
+    <h3>📚 Gespeicherte Schulstunden</h3>
+    <p>Unterschiedliche Phasenabläufe können unter frei wählbaren Namen wie „Mathe“ oder „Deutsch“ gespeichert und später wieder geladen werden. Dabei werden Phasenname, Reihenfolge, Dauer und zugeordnete Bilder übernommen. Schülernamen und individuelle Unterrichtsziele bleiben unabhängig von der gewählten Stunde erhalten.</p>
+    <h3>🖼️ Schnellbilder</h3>
+    <p>In der Timerkonfiguration können bis zu zehn eigene Bilder aus lokalen Ordnern als Schnellwahl hinterlegt werden. Diese Bilder lassen sich anschließend jeder Unterrichtsphase mit einem Fingertipp zuordnen. Zusätzlich kann weiterhin direkt pro Phase ein eigenes Bild gewählt werden.</p>
+    <h3>🚦 Individuelle Unterrichtsziele &amp; Mitarbeit</h3>
+    <p>In der Timerkonfiguration können zu jedem Schüler individuelle Unterrichtsziele angelegt und optional mit eigenen Bildern visualisiert werden. Während jeder Unterrichtsphase wird jedes hinterlegte Ziel über eine Ampel mit Rot, Gelb oder Grün bewertet. Die abschließende Gold-, Silber- und Bronze-Platzierung wird aus den Zielbewertungen der einzelnen Schüler berechnet.</p>
+    <h3>💾 Lokale Speicherung</h3>
+    <p>Timerkonfiguration, Startverzögerung, Tonsignal und ausgewählte Bilder werden ausschließlich lokal auf dem Gerät gespeichert. Es werden keine Nutzungsdaten übertragen.</p>
+    <h3>📴 Offline-Nutzung</h3>
+    <p>Nach dem ersten vollständigen Laden speichert ein Service Worker die App-Dateien auf dem Gerät. Danach kann die installierte App ohne Internetverbindung verwendet werden.</p>
+    <h3>☁️ Hosting &amp; Server</h3>
+    <p>Bei einer Bereitstellung über GitHub Pages oder einen anderen Webserver können technisch notwendige Server-Protokolle wie IP-Adresse, Zeitstempel und Browsertyp verarbeitet werden. Die App selbst enthält keine Analyse-, Werbe- oder Trackingdienste.</p>
+    <h3>🐙 GitHub</h3>
+    <p>Datenschutzerklärung von GitHub: <a href="https://docs.github.com/privacy" target="_blank" rel="noopener noreferrer">docs.github.com/privacy</a></p>
+    <h3>📞 Kontakt</h3>
+    <p>Bei Fragen oder Anmerkungen erreichst du den App-Entwickler per E-Mail:<br><a href="mailto:matthias.scheibelhut-beck@hephata-schulnetz.de">matthias.scheibelhut-beck@hephata-schulnetz.de</a></p>
+    <h3>♿ Barrierearme Bedienung</h3>
+    <p>Große Schaltflächen, klare Symbole, starke Kontraste, sichtbare Fokusmarkierungen und eine Hauptoberfläche ohne Scrollen unterstützen eine möglichst einfache Bedienung.</p>
+    <p><strong>Version 1.6 · Offline-PWA</strong></p>
+    <div class="dialog-actions"><button id="closeInfoBtn">✓ Schließen</button></div>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+const defaultState = {
+  delayEnabled:false,
+  delayMinutes:0,
+  sound:"gong",
+  students:[],
+  ratings:{},
+  quickIcons:Array(10).fill(null),
+  goals:[],
+  lessonProfiles:{},
+  phases:[
+    {id:crypto.randomUUID(),name:"Ankommen",minutes:5,image:null,quickIcon:null},
+    {id:crypto.randomUUID(),name:"Arbeitsphase",minutes:25,image:null,quickIcon:null},
+    {id:crypto.randomUUID(),name:"Sicherung",minutes:10,image:null,quickIcon:null}
+  ]
+};
+
+let state = loadState();
+let runtime = {
+  running:false, paused:false, startedAt:0, pauseStartedAt:0, pausedTotal:0,
+  currentPhase:-1, hidden:false, delayActive:false
+};
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem("unterrichtstimer-state");
+    if(raw){
+      const p=JSON.parse(raw);
+      if(Array.isArray(p.phases)&&p.phases.length){
+        const merged={...defaultState,...p};
+        if(!Array.isArray(merged.quickIcons))merged.quickIcons=Array(10).fill(null);
+        while(merged.quickIcons.length<10)merged.quickIcons.push(null);
+        merged.quickIcons=merged.quickIcons.slice(0,10);
+        merged.phases=merged.phases.map(ph=>({...ph,quickIcon:ph.quickIcon||null}));
+        if(!Array.isArray(merged.goals))merged.goals=[];
+        merged.goals=merged.goals.map(g=>({id:g.id||crypto.randomUUID(),student:g.student||"",text:g.text||"",image:g.image||null}));
+        if(!merged.lessonProfiles||typeof merged.lessonProfiles!=="object")merged.lessonProfiles={};
+        return merged;
+      }
+    }
+  }catch(e){}
+  return structuredClone(defaultState);
+}
+function saveState(){
+  localStorage.setItem("unterrichtstimer-state",JSON.stringify(state));
+}
+function showToast(msg){
+  const t=$("#toast");t.textContent=msg;t.classList.add("show");
+  clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>t.classList.remove("show"),1900);
+}
+
+function polar(cx,cy,r,a){const rad=(a-90)*Math.PI/180;return{x:cx+r*Math.cos(rad),y:cy+r*Math.sin(rad)}}
+function arcPath(cx,cy,r,start,end){
+  const s=polar(cx,cy,r,end), e=polar(cx,cy,r,start), large=end-start<=180?0:1;
+  return `M ${s.x} ${s.y} A ${r} ${r} 0 ${large} 0 ${e.x} ${e.y}`;
+}
+
+function buildClockFace(){
+  const ticks=$("#ticks"), nums=$("#numbers");
+  ticks.innerHTML="";nums.innerHTML="";
+  for(let i=0;i<60;i++){
+    const a=i*6, p1=polar(300,300,i%5===0?240:250,a),p2=polar(300,300,262,a);
+    const line=document.createElementNS("http://www.w3.org/2000/svg","line");
+    line.setAttribute("x1",p1.x);line.setAttribute("y1",p1.y);line.setAttribute("x2",p2.x);line.setAttribute("y2",p2.y);
+    line.setAttribute("stroke","#0f172a");line.setAttribute("stroke-width",i%5===0?"5":"2");
+    ticks.append(line);
+  }
+  for(let n=1;n<=12;n++){
+    const p=polar(300,300,210,n*30);
+    const t=document.createElementNS("http://www.w3.org/2000/svg","text");
+    t.setAttribute("x",p.x);t.setAttribute("y",p.y+9);t.setAttribute("text-anchor","middle");
+    t.setAttribute("font-size","30");t.setAttribute("font-weight","900");t.setAttribute("fill","#0f172a");
+    t.textContent=n;nums.append(t);
+  }
+}
+
+function renderClock(){
+  const now=new Date();
+  const sec=now.getSeconds()+now.getMilliseconds()/1000;
+  const min=now.getMinutes()+sec/60;
+  const hour=(now.getHours()%12)+min/60;
+  $("#secondHand").setAttribute("transform",`rotate(${sec*6} 300 300)`);
+  $("#minuteHand").setAttribute("transform",`rotate(${min*6} 300 300)`);
+  $("#hourHand").setAttribute("transform",`rotate(${hour*30} 300 300)`);
+}
+
+function animateClock(){
+  renderClock();
+  requestAnimationFrame(animateClock);
+}
+
+function totalSeconds(){return state.phases.reduce((s,p)=>s+Math.max(1,p.minutes)*60,0)}
+function elapsedSeconds(){
+  if(!runtime.running)return 0;
+  const end=runtime.paused?runtime.pauseStartedAt:Date.now();
+  return Math.max(0,(end-runtime.startedAt-runtime.pausedTotal)/1000);
+}
+
+function getTimelinePosition(){
+  const delay=state.delayEnabled?state.delayMinutes*60:0;
+  let e=elapsedSeconds();
+  if(e<delay)return {phase:-1,remaining:delay-e,elapsedInPhase:0,totalPhase:delay,done:false,delay:true};
+  e-=delay;
+  let acc=0;
+  for(let i=0;i<state.phases.length;i++){
+    const len=Math.max(1,state.phases[i].minutes)*60;
+    if(e<acc+len)return {phase:i,remaining:acc+len-e,elapsedInPhase:e-acc,totalPhase:len,done:false,delay:false};
+    acc+=len;
+  }
+  return {phase:state.phases.length-1,remaining:0,elapsedInPhase:0,totalPhase:1,done:true,delay:false};
+}
+
+function formatTime(sec){
+  sec=Math.max(0,Math.ceil(sec));
+  const m=Math.floor(sec/60),s=sec%60;
+  return `${m}:${String(s).padStart(2,"0")}`;
+}
+
+function phaseColor(i){
+  const colors=["#fde68a","#bfdbfe","#bbf7d0","#fecaca","#ddd6fe","#fed7aa","#bae6fd","#fbcfe8"];
+  return colors[i%colors.length];
+}
+
+function minuteAngle(date){
+  return (date.getMinutes()+date.getSeconds()/60+date.getMilliseconds()/60000)*6;
+}
+
+function phaseSchedule(){
+  if(!runtime.running)return [];
+  const base=new Date(runtime.startedAt);
+  const delaySec=state.delayEnabled?state.delayMinutes*60:0;
+  let cursorMs=base.getTime()+delaySec*1000;
+  return state.phases.map((p,i)=>{
+    const start=new Date(cursorMs);
+    const durationSec=Math.max(1,Number(p.minutes))*60;
+    const end=new Date(cursorMs+durationSec*1000);
+    cursorMs=end.getTime();
+    return {phase:p,index:i,start,end,durationSec};
+  });
+}
+
+function renderPhaseArcs(){
+  const g=$("#phaseArcs"), iconG=$("#phaseIcons");
+  g.innerHTML=""; iconG.innerHTML="";
+  if(runtime.hidden||!runtime.running)return;
+
+  const schedule=phaseSchedule();
+  const now=new Date();
+
+  schedule.forEach(item=>{
+    const p=item.phase, i=item.index;
+    if(now>=item.end)return;
+
+    let visibleStart=new Date(item.start);
+    if(runtime.currentPhase===i && now>item.start && now<item.end){
+      visibleStart=now;
+    }
+
+    const startA=minuteAngle(visibleStart);
+    const endA=minuteAngle(item.end);
+    let span=((endA-startA)%360+360)%360;
+    if(item.durationSec>=3600 && span<1)span=359.5;
+    if(span<0.15)return;
+
+    // Die laufende Phase bleibt außen. Spätere Phasen rücken ringweise nach innen,
+    // damit keine Visualisierung eine andere überlagert.
+    const futureOffset = runtime.currentPhase >= 0 ? Math.max(0, i-runtime.currentPhase) : i;
+    const radius = Math.max(176, 272 - futureOffset*26);
+    const width = 22;
+
+    const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d",arcPath(300,300,radius,startA,startA+span));
+    path.setAttribute("fill","none");
+    path.setAttribute("stroke",phaseColor(i));
+    path.setAttribute("stroke-width",String(width));
+    path.setAttribute("stroke-linecap","butt");
+    path.setAttribute("opacity","1");
+    g.append(path);
+
+    const midA=startA+span/2;
+    const iconP=polar(300,300,radius,midA);
+    const displayImage=p.image||p.quickIcon;
+    if(displayImage){
+      const image=document.createElementNS("http://www.w3.org/2000/svg","image");
+      image.setAttribute("href",displayImage);
+      image.setAttribute("x",iconP.x-15); image.setAttribute("y",iconP.y-15);
+      image.setAttribute("width","30"); image.setAttribute("height","30");
+      image.setAttribute("preserveAspectRatio","xMidYMid slice");
+      iconG.append(image);
+    }
+  });
+}
+
+function updateRuntimeDisplay(){
+  const pos=getTimelinePosition();
+  if(runtime.running)renderPhaseArcs();
+  const nameEl=$("#currentPhase .phase-name"), timeEl=$("#currentPhase .phase-time");
+  if(!runtime.running){
+    nameEl.textContent="Bereit";timeEl.textContent="Timer konfigurieren und starten";
+    $("#runState").textContent="Bereit";
+    return;
+  }
+  if(pos.done){
+    nameEl.textContent="Unterrichtsphasen beendet";timeEl.textContent="Fertig";$("#runState").textContent="Fertig";
+    if(runtime.running){runtime.running=false;runtime.paused=false;playSignal();showToast("Alle Timer sind beendet.");renderRanking();}
+    return;
+  }
+  if(pos.delay){
+    runtime.currentPhase=-1;
+    nameEl.textContent="Startverzögerung";
+    timeEl.textContent=`Noch ${formatTime(pos.remaining)}`;
+    $("#runState").textContent=runtime.paused?"Pause":"Startverzögerung";
+  }else{
+    if(runtime.currentPhase!==pos.phase){
+      if(runtime.currentPhase!==-1)playSignal();
+      runtime.currentPhase=pos.phase;
+      renderPhaseArcs();renderPhaseList();renderStudentRatings();
+    }
+    const p=state.phases[pos.phase];
+    nameEl.textContent=p.name;
+    timeEl.textContent=`Noch ${formatTime(pos.remaining)} · Phase ${pos.phase+1} von ${state.phases.length}`;
+    $("#runState").textContent=runtime.paused?"Pause":"Läuft";
+  }
+}
+
+
+function ensureRatings(){
+  if(!state.ratings||typeof state.ratings!=="object")state.ratings={};
+  if(!Array.isArray(state.goals))state.goals=[];
+  state.phases.forEach(p=>{
+    if(!state.ratings[p.id])state.ratings[p.id]={};
+    state.goals.forEach(goal=>{
+      if(!(goal.id in state.ratings[p.id]))state.ratings[p.id][goal.id]=null;
+    });
+  });
+}
+
+function ratingScore(value){
+  return value==="green"?2:value==="yellow"?1:value==="red"?0:null;
+}
+
+function renderStudentRatings(){
+  ensureRatings();
+  const box=$("#studentRatings");
+  box.innerHTML="";
+  if(!state.students.length){
+    box.innerHTML='<div class="empty">Noch keine Schülernamen eingetragen.</div>';
+    return;
+  }
+  const phase=state.phases[runtime.currentPhase]||null;
+  if(!phase){
+    box.innerHTML='<div class="empty">Bewertung ist während einer Unterrichtsphase möglich.</div>';
+    return;
+  }
+  if(!state.goals.length){
+    box.innerHTML='<div class="empty">Noch keine individuellen Unterrichtsziele angelegt.</div>';
+    return;
+  }
+
+  state.students.forEach(name=>{
+    const goals=state.goals.filter(g=>g.student===name);
+    if(!goals.length)return;
+
+    goals.forEach(goal=>{
+      const row=document.createElement("div");row.className="student-goal-row";
+
+      const thumb=document.createElement("div");thumb.className="goal-thumb";
+      if(goal.image){
+        const img=document.createElement("img");img.src=goal.image;img.alt="";
+        thumb.append(img);
+      }else{
+        thumb.textContent="🎯";
+      }
+
+      const text=document.createElement("div");text.className="student-goal-text";
+      const student=document.createElement("strong");student.textContent=name;
+      const goalText=document.createElement("span");goalText.textContent=goal.text||"Unterrichtsziel";
+      text.append(student,goalText);
+
+      const traffic=document.createElement("div");traffic.className="traffic";
+      ["red","yellow","green"].forEach(r=>{
+        const b=document.createElement("button");b.type="button";b.dataset.rating=r;
+        b.classList.toggle("active",state.ratings[phase.id]?.[goal.id]===r);
+        b.setAttribute("aria-label",`${name}, ${goal.text}: ${r==="red"?"rot":r==="yellow"?"gelb":"grün"}`);
+        b.onclick=()=>{
+          ensureRatings();
+          state.ratings[phase.id][goal.id]=r;
+          saveState();
+          renderStudentRatings();
+          renderRanking();
+        };
+        traffic.append(b);
+      });
+
+      row.append(thumb,text,traffic);
+      box.append(row);
+    });
+  });
+}
+function studentTotals(){
+  ensureRatings();
+  return state.students.map(name=>{
+    const goals=state.goals.filter(g=>g.student===name);
+    let score=0,rated=0;
+    state.phases.forEach(p=>{
+      goals.forEach(goal=>{
+        const val=state.ratings[p.id]?.[goal.id];
+        const s=ratingScore(val);
+        if(s!==null){score+=s;rated++;}
+      });
+    });
+    return {name,score,rated};
+  }).sort((a,b)=>b.score-a.score||b.rated-a.rated||a.name.localeCompare(b.name,"de"));
+}
+function renderRanking(){
+  const ranking=$("#rankingList"), box=$("#rankingBox");
+  ranking.innerHTML="";
+  if(!state.students.length){box.hidden=true;return;}
+  const totals=studentTotals();
+  const anyRated=totals.some(x=>x.rated>0);
+  box.hidden=!anyRated;
+  if(!anyRated)return;
+  const medals=["🥇","🥈","🥉"];
+  const classes=["gold","silver","bronze"];
+  totals.forEach((item,i)=>{
+    const row=document.createElement("div");
+    row.className=`rank-item ${classes[i]||"other"}`;
+    const medal=document.createElement("span");medal.textContent=medals[i]||`${i+1}.`;
+    const name=document.createElement("span");name.textContent=item.name;
+    const score=document.createElement("span");score.textContent=`${item.score} P`;
+    row.append(medal,name,score);ranking.append(row);
+  });
+}
+
+function renderPhaseList(){
+  const list=$("#phaseList");list.innerHTML="";
+  list.style.gridTemplateRows=`repeat(${Math.max(1,state.phases.length)},minmax(0,1fr))`;
+  state.phases.forEach((p,i)=>{
+    const c=document.createElement("div");c.className="phase-card"+(runtime.currentPhase===i?" active":"");
+    c.style.setProperty("--phase-color",phaseColor(i));
+    c.style.borderColor=phaseColor(i);
+    const thumb=document.createElement("div");thumb.className="phase-thumb";
+    thumb.style.borderColor=phaseColor(i);
+    thumb.style.background=phaseColor(i);
+    const displayImage=p.image||p.quickIcon;
+    if(displayImage){const img=document.createElement("img");img.src=displayImage;img.alt="";thumb.append(img)}else thumb.textContent="🕒";
+    const meta=document.createElement("div");meta.className="phase-meta";meta.innerHTML=`<strong>${escapeHtml(p.name)}</strong><span>${p.minutes} Minuten</span>`;
+    const idx=document.createElement("div");idx.className="phase-index";idx.textContent=i+1;
+    c.append(thumb,meta,idx);list.append(c);
+  });
+  $("#totalMinutes").textContent=state.phases.reduce((s,p)=>s+Number(p.minutes||0),0);
+  $("#phaseCount").textContent=state.phases.length;
+  renderPhaseArcs();
+  renderStudentRatings();
+  renderRanking();
+}
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+
+
+function clonePhasesForProfile(){
+  return state.phases.map(p=>({
+    name:p.name,
+    minutes:Number(p.minutes)||1,
+    image:p.image||null,
+    quickIcon:p.quickIcon||null
+  }));
+}
+
+function applyLessonProfile(name){
+  const profile=state.lessonProfiles?.[name];
+  if(!profile||!Array.isArray(profile.phases))return;
+  state.phases=profile.phases.map(p=>({
+    id:crypto.randomUUID(),
+    name:p.name||"Phase",
+    minutes:Math.max(1,Number(p.minutes)||1),
+    image:p.image||null,
+    quickIcon:p.quickIcon||null
+  }));
+  state.ratings={};
+  runtime.currentPhase=-1;
+  saveState();
+  renderConfig();
+  renderPhaseList();
+  showToast(`Stunde „${name}“ geladen.`);
+}
+
+function renderLessonProfiles(){
+  const select=$("#lessonProfileSelect");
+  if(!select)return;
+  const names=Object.keys(state.lessonProfiles||{}).sort((a,b)=>a.localeCompare(b,"de"));
+  const current=select.value;
+  select.innerHTML='<option value="">Gespeicherte Stunde wählen</option>';
+  names.forEach(name=>{
+    const opt=document.createElement("option");
+    opt.value=name;opt.textContent=name;select.append(opt);
+  });
+  if(names.includes(current))select.value=current;
+}
+
+function renderConfig(){
+  renderLessonProfiles();
+  $("#delayToggle").setAttribute("aria-pressed",String(state.delayEnabled));
+  if(!Array.isArray(state.students))state.students=[];
+  if(!Array.isArray(state.quickIcons))state.quickIcons=Array(10).fill(null);
+  while(state.quickIcons.length<10)state.quickIcons.push(null);
+  state.quickIcons=state.quickIcons.slice(0,10);
+  const quickBox=$("#quickIconsConfig");
+  quickBox.innerHTML="";
+  state.quickIcons.forEach((src,idx)=>{
+    const slot=document.createElement("label");slot.className="quick-icon-slot";
+    if(src){
+      const img=document.createElement("img");img.src=src;img.alt=`Schnellbild ${idx+1}`;slot.append(img);
+    }else{
+      const ph=document.createElement("span");ph.className="slot-placeholder";ph.textContent="＋";slot.append(ph);
+    }
+    const input=document.createElement("input");input.type="file";input.accept="image/*";input.setAttribute("aria-label",`Schnellbild ${idx+1} auswählen`);
+    input.onchange=e=>{
+      const f=e.target.files?.[0];if(!f)return;
+      if(f.size>2_500_000)return showToast("Bitte ein Bild unter 2,5 MB auswählen.");
+      const reader=new FileReader();
+      reader.onload=()=>{state.quickIcons[idx]=reader.result;renderConfig();};
+      reader.readAsDataURL(f);
+    };
+    slot.append(input);quickBox.append(slot);
+  });
+  const studentEdit=$("#studentListEdit");
+  studentEdit.innerHTML="";
+  state.students.forEach(name=>{
+    const chip=document.createElement("div");chip.className="student-chip-edit";
+    const span=document.createElement("span");span.textContent=name;
+    const rm=document.createElement("button");rm.type="button";rm.textContent="×";rm.setAttribute("aria-label",`${name} entfernen`);
+    rm.onclick=()=>{state.students=state.students.filter(n=>n!==name);state.goals.forEach(g=>{if(g.student===name)g.student="";});renderConfig();};
+    chip.append(span,rm);studentEdit.append(chip);
+  });
+  if(!Array.isArray(state.goals))state.goals=[];
+  const goalBox=$("#goalConfigList");
+  goalBox.innerHTML="";
+  state.goals.forEach(goal=>{
+    const card=document.createElement("div");card.className="goal-config-card";
+
+    const imageBox=document.createElement("label");imageBox.className="goal-image";
+    if(goal.image){
+      const img=document.createElement("img");img.src=goal.image;img.alt="";
+      imageBox.append(img);
+    }else{
+      imageBox.textContent="🎯";
+    }
+    const file=document.createElement("input");file.type="file";file.accept="image/*";file.className="goal-file";file.style.display="none";
+    file.setAttribute("aria-label","Bild für Unterrichtsziel auswählen");
+    file.onchange=e=>{
+      const f=e.target.files?.[0];if(!f)return;
+      if(f.size>2_500_000)return showToast("Bitte ein Bild unter 2,5 MB auswählen.");
+      const reader=new FileReader();
+      reader.onload=()=>{goal.image=reader.result;renderConfig();};
+      reader.readAsDataURL(f);
+    };
+    imageBox.append(file);
+
+    const fields=document.createElement("div");fields.className="goal-fields";
+    const select=document.createElement("select");
+    select.innerHTML='<option value="">Schüler wählen</option>'+state.students.map(name=>`<option value="${escapeHtml(name)}"${goal.student===name?" selected":""}>${escapeHtml(name)}</option>`).join("");
+    select.onchange=e=>goal.student=e.target.value;
+
+    const input=document.createElement("input");input.type="text";input.maxLength=100;input.placeholder="Unterrichtsziel eingeben";input.value=goal.text||"";
+    input.oninput=e=>goal.text=e.target.value;
+
+    const imageHint=document.createElement("button");imageHint.type="button";imageHint.className="toggle-btn";imageHint.textContent=goal.image?"Bild entfernen":"Bild auswählen";
+    imageHint.onclick=()=>{
+      if(goal.image){goal.image=null;renderConfig();}
+      else file.click();
+    };
+
+    fields.append(select,input,imageHint);
+
+    const rm=document.createElement("button");rm.type="button";rm.className="goal-remove";rm.textContent="🗑";
+    rm.setAttribute("aria-label","Unterrichtsziel löschen");
+    rm.onclick=()=>{state.goals=state.goals.filter(g=>g.id!==goal.id);renderConfig();};
+
+    card.append(imageBox,fields,rm);
+    goalBox.append(card);
+  });
+  $("#delayToggle").textContent=state.delayEnabled?"An":"Aus";
+  $("#delayValue").textContent=`${state.delayMinutes} min`;
+  $$("#soundGrid .sound-btn").forEach(b=>b.classList.toggle("active",b.dataset.sound===state.sound));
+  const box=$("#phaseEditorList");box.innerHTML="";
+  state.phases.forEach((p,i)=>{
+    const row=document.createElement("div");row.className="phase-editor";row.dataset.id=p.id;
+    row.innerHTML=`
+      <div class="phase-fields">
+        <input type="text" class="phase-name-input" value="${escapeHtml(p.name)}" maxlength="50" aria-label="Name der Phase ${i+1}">
+        <div class="duration-control">
+          <button class="dur-minus" type="button">−</button>
+          <span class="dur-value">${p.minutes}</span>
+          <button class="dur-plus" type="button">+</button>
+        </div>
+        <div class="icon-palette">
+          ${state.quickIcons.map((src,idx)=>src?`<button type="button" class="icon-choice${p.quickIcon===src?" active":""}" data-quick-index="${idx}"><img src="${src}" alt="Schnellbild ${idx+1}"></button>`:`<button type="button" class="icon-choice" disabled>＋</button>`).join("")}
+        </div>
+        <div class="image-row">
+          <span>🖼️</span>
+          <input type="file" class="phase-image-input" accept="image/*" aria-label="Bild für ${escapeHtml(p.name)} auswählen">
+          <button type="button" class="clear-image toggle-btn">${(p.image||p.quickIcon)?"Bild entfernen":"Kein Bild"}</button>
+        </div>
+      </div>
+      <button type="button" class="remove-phase" aria-label="Timer löschen">🗑</button>
+    `;
+    row.querySelector(".dur-minus").onclick=()=>{p.minutes=Math.max(1,Number(p.minutes)-1);renderConfig()};
+    row.querySelector(".dur-plus").onclick=()=>{p.minutes=Math.min(180,Number(p.minutes)+1);renderConfig()};
+    row.querySelector(".remove-phase").onclick=()=>{
+      if(state.phases.length<=1)return showToast("Mindestens ein Timer muss vorhanden sein.");
+      state.phases=state.phases.filter(x=>x.id!==p.id);renderConfig();
+    };
+    row.querySelector(".phase-name-input").addEventListener("input",e=>p.name=e.target.value);
+    row.querySelectorAll(".icon-choice[data-quick-index]").forEach(btn=>btn.onclick=()=>{p.quickIcon=state.quickIcons[Number(btn.dataset.quickIndex)]||null;p.image=null;renderConfig();});
+    row.querySelector(".phase-image-input").addEventListener("change",e=>{
+      const f=e.target.files?.[0];if(!f)return;
+      if(f.size>2_500_000)return showToast("Bitte ein Bild unter 2,5 MB auswählen.");
+      const reader=new FileReader();
+      reader.onload=()=>{p.image=reader.result;renderConfig()};
+      reader.readAsDataURL(f);
+    });
+    row.querySelector(".clear-image").onclick=()=>{if(p.image||p.quickIcon){p.image=null;p.quickIcon=null;renderConfig()}};
+    box.append(row);
+  });
+}
+
+function playSignal(){
+  if(state.sound==="mute")return;
+  try{
+    const C=window.AudioContext||window.webkitAudioContext,ctx=new C();
+    const now=ctx.currentTime;
+    const tone=(freq,start,dur,vol=.13,type="sine")=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=freq;
+      g.gain.setValueAtTime(.0001,now+start);g.gain.exponentialRampToValueAtTime(vol,now+start+.02);g.gain.exponentialRampToValueAtTime(.0001,now+start+dur);
+      o.connect(g).connect(ctx.destination);o.start(now+start);o.stop(now+start+dur+.03);
+    };
+    if(state.sound==="gong"){tone(523,0,.8,.18);tone(659,.12,.8,.14);tone(784,.24,1.1,.12)}
+    else if(state.sound==="digital"){tone(880,0,.18,.15,"square");tone(660,.23,.18,.15,"square");tone(990,.46,.25,.15,"square")}
+    else {tone(440,0,.7,.08);tone(554,.2,.7,.07);tone(659,.4,.8,.06)}
+  }catch(e){}
+}
+
+$("#startBtn").onclick=()=>{
+  if(runtime.running&&!runtime.paused)return;
+  if(runtime.running&&runtime.paused){
+    runtime.pausedTotal+=Date.now()-runtime.pauseStartedAt;runtime.paused=false;showToast("Fortgesetzt.");
+  }else{
+    runtime={...runtime,running:true,paused:false,startedAt:Date.now(),pauseStartedAt:0,pausedTotal:0,currentPhase:-1};
+    showToast("Timer gestartet.");
+  }
+  renderPhaseArcs();
+};
+$("#pauseBtn").onclick=()=>{
+  if(!runtime.running)return showToast("Der Timer läuft noch nicht.");
+  if(runtime.paused){
+    runtime.pausedTotal+=Date.now()-runtime.pauseStartedAt;runtime.paused=false;showToast("Fortgesetzt.");
+  }else{
+    runtime.paused=true;runtime.pauseStartedAt=Date.now();showToast("Pausiert.");
+  }
+};
+$("#stopBtn").onclick=()=>{
+  runtime={...runtime,running:false,paused:false,startedAt:0,pauseStartedAt:0,pausedTotal:0,currentPhase:-1};
+  renderPhaseList();renderStudentRatings();renderRanking();updateRuntimeDisplay();showToast("Timer gestoppt.");
+};
+$("#hideBtn").onclick=()=>{
+  runtime.hidden=!runtime.hidden;
+  $("#hideBtn").textContent=runtime.hidden?"◉":"✕";
+  $("#hideBtn").setAttribute("aria-label",runtime.hidden?"Timer einblenden":"Timer ausblenden");
+  renderPhaseArcs();
+};
+
+$("#configBtn").onclick=()=>{renderConfig();$("#configDialog").showModal()};
+
+$("#saveLessonProfileBtn").onclick=()=>{
+  const input=$("#lessonProfileName");
+  const name=input.value.trim();
+  if(!name)return showToast("Bitte einen Namen für die Schulstunde eingeben.");
+  if(!state.lessonProfiles||typeof state.lessonProfiles!=="object")state.lessonProfiles={};
+  state.lessonProfiles[name]={phases:clonePhasesForProfile()};
+  saveState();
+  renderLessonProfiles();
+  $("#lessonProfileSelect").value=name;
+  showToast(`Stunde „${name}“ gespeichert.`);
+};
+
+$("#loadLessonProfileBtn").onclick=()=>{
+  const name=$("#lessonProfileSelect").value;
+  if(!name)return showToast("Bitte zuerst eine gespeicherte Stunde auswählen.");
+  applyLessonProfile(name);
+};
+
+$("#deleteLessonProfileBtn").onclick=()=>{
+  const name=$("#lessonProfileSelect").value;
+  if(!name)return showToast("Bitte zuerst eine gespeicherte Stunde auswählen.");
+  delete state.lessonProfiles[name];
+  saveState();
+  renderLessonProfiles();
+  $("#lessonProfileName").value="";
+  showToast(`Stunde „${name}“ gelöscht.`);
+};
+
+$("#lessonProfileSelect").addEventListener("change",e=>{
+  if(e.target.value)$("#lessonProfileName").value=e.target.value;
+});
+
+$("#saveConfigBtn").onclick=()=>{ensureRatings();saveState();renderPhaseList();$("#configDialog").close();showToast("Konfiguration gespeichert.")};
+
+
+$("#addGoalBtn").onclick=()=>{
+  state.goals.push({id:crypto.randomUUID(),student:state.students[0]||"",text:"",image:null});
+  renderConfig();
+};
+$("#addStudentBtn").onclick=()=>{
+  const input=$("#studentNameInput"),name=input.value.trim();
+  if(!name)return;
+  if(!state.students.includes(name))state.students.push(name);
+  input.value="";
+  renderConfig();
+};
+$("#studentNameInput").addEventListener("keydown",e=>{if(e.key==="Enter"){$("#addStudentBtn").click();}});
+$("#addPhaseBtn").onclick=()=>{state.phases.push({id:crypto.randomUUID(),name:`Phase ${state.phases.length+1}`,minutes:10,image:null,quickIcon:null});renderConfig()};
+$("#delayToggle").onclick=()=>{state.delayEnabled=!state.delayEnabled;renderConfig()};
+$("#delayMinus").onclick=()=>{state.delayMinutes=Math.max(0,state.delayMinutes-1);renderConfig()};
+$("#delayPlus").onclick=()=>{state.delayMinutes=Math.min(60,state.delayMinutes+1);renderConfig()};
+$("#soundGrid").addEventListener("click",e=>{const b=e.target.closest("[data-sound]");if(!b)return;state.sound=b.dataset.sound;renderConfig();playSignal()});
+
+$("#infoBtn").onclick=()=>$("#infoDialog").showModal();
+$("#closeInfoBtn").onclick=()=>$("#infoDialog").close();
+$("#infoDialog").addEventListener("click",e=>{if(e.target===$("#infoDialog"))$("#infoDialog").close()});
+$("#configDialog").addEventListener("click",e=>{if(e.target===$("#configDialog"))$("#configDialog").close()});
+
+$("#viewBtn").onclick=async()=>{
+  if(!document.fullscreenElement){
+    try{await document.documentElement.requestFullscreen();$("#viewBtn").textContent="▣";document.body.classList.remove("compact")}
+    catch(e){document.body.classList.toggle("compact");$("#viewBtn").textContent=document.body.classList.contains("compact")?"▣":"⛶"}
+  }else{
+    try{await document.exitFullscreen();$("#viewBtn").textContent="⛶"}catch(e){}
+  }
+};
+document.addEventListener("fullscreenchange",()=>{if(!document.fullscreenElement)$("#viewBtn").textContent="⛶"});
+
+buildClockFace();renderPhaseList();updateRuntimeDisplay();
+animateClock();
+setInterval(updateRuntimeDisplay,100);
+
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body>
+</html>
