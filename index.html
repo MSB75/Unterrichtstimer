@@ -239,7 +239,7 @@ details.config-fold .fold-body{padding:11px 12px;border-top:2px solid #e2e8f0}
   </aside>
 </section>
 
-<footer class="footer">Version 1.10 · Offline-PWA für iPad und Browser</footer>
+<footer class="footer">Version 1.11 · Offline-PWA für iPad und Browser</footer>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -356,7 +356,7 @@ details.config-fold .fold-body{padding:11px 12px;border-top:2px solid #e2e8f0}
     <p>Bei Fragen oder Anmerkungen erreichst du den App-Entwickler per E-Mail:<br><a href="mailto:matthias.scheibelhut-beck@hephata-schulnetz.de">matthias.scheibelhut-beck@hephata-schulnetz.de</a></p>
     <h3>♿ Barrierearme Bedienung</h3>
     <p>Große Schaltflächen, klare Symbole, starke Kontraste, sichtbare Fokusmarkierungen und eine Hauptoberfläche ohne Scrollen unterstützen eine möglichst einfache Bedienung.</p>
-    <p><strong>Version 1.10 · Offline-PWA</strong></p>
+    <p><strong>Version 1.11 · Offline-PWA</strong></p>
     <div class="dialog-actions"><button id="closeInfoBtn">✓ Schließen</button></div>
   </div>
 </dialog>
@@ -550,10 +550,14 @@ function renderPhaseArcs(){
     const iconP=polar(300,300,iconRadius,midA);
     const displayImage=p.image||p.quickIcon;
     if(displayImage){
-      const frame=document.createElementNS("http://www.w3.org/2000/svg","circle");
-      frame.setAttribute("cx",iconP.x);
-      frame.setAttribute("cy",iconP.y);
-      frame.setAttribute("r","26");
+      const frameSize=56;
+      const frame=document.createElementNS("http://www.w3.org/2000/svg","rect");
+      frame.setAttribute("x",iconP.x-frameSize/2);
+      frame.setAttribute("y",iconP.y-frameSize/2);
+      frame.setAttribute("width",frameSize);
+      frame.setAttribute("height",frameSize);
+      frame.setAttribute("rx","11");
+      frame.setAttribute("ry","11");
       frame.setAttribute("fill","#ffffff");
       frame.setAttribute("stroke","#0f172a");
       frame.setAttribute("stroke-width","4");
@@ -561,9 +565,11 @@ function renderPhaseArcs(){
 
       const image=document.createElementNS("http://www.w3.org/2000/svg","image");
       image.setAttribute("href",displayImage);
-      image.setAttribute("x",iconP.x-21); image.setAttribute("y",iconP.y-21);
-      image.setAttribute("width","42"); image.setAttribute("height","42");
-      image.setAttribute("preserveAspectRatio","xMidYMid slice");
+      image.setAttribute("x",iconP.x-23);
+      image.setAttribute("y",iconP.y-23);
+      image.setAttribute("width","46");
+      image.setAttribute("height","46");
+      image.setAttribute("preserveAspectRatio","xMidYMid meet");
       iconG.append(image);
     }
   });

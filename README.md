@@ -101,3 +101,9 @@ Die ausgewählten Bilder werden lokal im Browser gespeichert. Für sehr große B
 - Die Bildposition orientiert sich weiterhin an der jeweiligen Phase.
 - Die aktuelle Phasenbeschreibung wurde direkt über die Steuerungsbuttons verschoben.
 - Dadurch werden Uhr und wichtige Informationen nicht mehr verdeckt.
+
+
+## Version 1.11
+- Phasenbilder an der Uhr sind jetzt quadratisch mit abgerundeten Ecken.
+- Die Bildfläche wurde so angepasst, dass Icons vollständig innerhalb des Rahmens sichtbar bleiben.
+- Bilder verwenden eine "contain"-Darstellung statt Beschnitt.
