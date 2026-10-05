@@ -88,3 +88,16 @@ Die ausgewählten Bilder werden lokal im Browser gespeichert. Für sehr große B
 - Zielbewertungen und Punkte/Platzierungen sind jeweils einklappbar.
 - Bei gleicher Punktzahl erhalten Schüler dieselbe Platzierung.
 - Die folgenden unterschiedlichen Punktstände erhalten die jeweils nächste Platzierung.
+
+
+## Version 1.9
+- Farbliche Timer-Markierungen am Uhrenrand deutlich breiter dargestellt.
+- Phasenbilder/Symbole auf der Uhr vergrößert.
+- Phasenbilder/Symbole erhalten einen weißen Hintergrund mit kräftigem dunklem Rahmen für bessere Wahrnehmung.
+
+
+## Version 1.10
+- Phasenbilder/Symbole werden außerhalb des eigentlichen Uhrenfeldes angezeigt.
+- Die Bildposition orientiert sich weiterhin an der jeweiligen Phase.
+- Die aktuelle Phasenbeschreibung wurde direkt über die Steuerungsbuttons verschoben.
+- Dadurch werden Uhr und wichtige Informationen nicht mehr verdeckt.
